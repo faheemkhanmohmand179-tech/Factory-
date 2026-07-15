@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta name="theme-color" content="#b4593b" />
+  <title>المکہ فیکٹری - ماربل پروسیسنگ</title>
+  <meta name="description" content="المکہ فیکٹری - ماربل کٹنگ، انوینٹری اور عملہ مینجمنٹ سسٹم" />
+
+  <!-- Noto Naskh Arabic (fast, body) + Noto Nastaliq Urdu (headings) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ============ STONE / MARBLE COLOR PALETTE ============ */
+    :root {
+      --radius: 0.625rem;
+      --background: #faf6ef;
+      --foreground: #3a342e;
+      --card: #fffdf8;
+      --card-foreground: #3a342e;
+      --popover: #fffdf8;
+      --popover-foreground: #3a342e;
+      --primary: #b4593b;
+      --primary-foreground: #faf6ef;
+      --secondary: #e8dcc4;
+      --secondary-foreground: #4a3f33;
+      --muted: #f0e8d8;
+      --muted-foreground: #7a6f5f;
+      --accent: #f0e0c8;
+      --accent-foreground: #6b3a1f;
+      --destructive: #c0392b;
+      --destructive-foreground: #faf6ef;
+      --border: #ddd0b8;
+      --input: #e0d3bb;
+      --ring: #b4593b;
+      --sidebar: #f5ede0;
+      --sidebar-foreground: #3a342e;
+      --sidebar-primary: #b4593b;
+      --sidebar-accent: #f0e0c8;
+      --amber: #d97706;
+      --emerald: #059669;
+      --blue: #2563eb;
+      --chart-1: #b4593b;
+      --chart-2: #c9a574;
+      --chart-3: #6b6358;
+      --chart-4: #d4a574;
+      --chart-5: #6b8e6b;
+    }
+
+    .dark {
+      --background: #2a2520;
+      --foreground: #f0e8d8;
+      --card: #362e26;
+      --card-foreground: #f0e8d8;
+      --popover: #362e26;
+      --popover-foreground: #f0e8d8;
+      --primary: #c66a4a;
+      --primary-foreground: #2a2520;
+      --secondary: #4a3f33;
+      --secondary-foreground: #f0e8d8;
+      --muted: #4a3f33;
+      --muted-foreground: #b8a890;
+      --accent: #5a4630;
+      --accent-foreground: #f0e8d8;
+      --border: #4a3f33;
+      --input: #4a3f33;
+      --sidebar: #362e26;
+      --sidebar-foreground: #f0e8d8;
+      --sidebar-accent: #5a4630;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-color: var(--border);
+      outline-color: var(--ring);
+    }
+
+    body {
+      font-family: 'Noto Naskh Arabic', system-ui, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .font-heading {
+      font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
+      line-height: 2;
+      font-weight: 700;
+    }
+
+    .numeric {
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    /* ============ APP SHELL ============ */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 253, 248, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .dark .header { background: rgba(54, 46, 38, 0.85); }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .menu-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--foreground);
+    }
+    .menu-btn:hover { background: var(--muted); }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-icon {
+      background: rgba(180, 89, 59, 0.1);
+      padding: 0.375rem;
+      border-radius: 0.375rem;
+      color: var(--primary);
+      display: flex;
+    }
+
+    .brand-text { display: none; }
+    @media (min-width: 640px) { .brand-text { display: block; } }
+
+    .brand-title {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      line-height: 1.4;
+    }
+
+    .header-active {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+    }
+
+    /* ============ MAIN CONTENT ============ */
+    .main {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: 6rem;
+      max-width: 72rem;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      .main { padding-bottom: 1rem; }
+    }
+
+    /* ============ DASHBOARD ============ */
+    .page-heading {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .page-subtitle {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      margin-top: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Stat cards grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 640px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .stat-card-header {
+      padding: 1rem 1rem 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .stat-card-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+    }
+
+    .stat-icon {
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+      display: flex;
+    }
+    .stat-icon.primary { background: rgba(180, 89, 59, 0.1); color: var(--primary); }
+    .stat-icon.neutral { background: var(--muted); color: var(--muted-foreground); }
+    .stat-icon.amber { background: rgba(217, 119, 6, 0.1); color: var(--amber); }
+
+    .stat-card-body {
+      padding: 0 1rem 1rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-unit {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    /* Alert banner */
+    .alert {
+      background: rgba(217, 119, 6, 0.08);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+    .alert-icon { color: var(--amber); flex-shrink: 0; }
+
+    /* Two-column section */
+    .two-col {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .two-col { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1rem 1rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    .card-body { padding: 0.75rem; }
+
+    .record-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .record-row:last-child { margin-bottom: 0; }
+
+    .record-info { flex: 1; min-width: 0; }
+
+    .record-title {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .record-meta {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      margin-top: 0.125rem;
+    }
+
+    .record-value {
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-align: left;
+      flex-shrink: 0;
+    }
+
+    .empty-text {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      text-align: center;
+      padding: 1rem;
+    }
+
+    /* Quick stats 3-col */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+
+    .quick-stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .quick-stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .quick-stat-label {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      margin-top: 0.25rem;
+    }
+
+    /* ============ BADGE ============ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.75rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+    }
+    .badge-secondary {
+      background: var(--secondary);
+      color: var(--secondary-foreground);
+    }
+    .badge-outline {
+      border: 1px solid var(--border);
+      color: var(--foreground);
+    }
+
+    /* ============ NAVIGATION DRAWER ============ */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 20rem;
+      max-width: 85vw;
+      background: var(--sidebar);
+      z-index: 50;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    .drawer-title {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .drawer-subtitle {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+
+    .drawer-nav {
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      text-align: right;
+      color: var(--foreground);
+      background: transparent;
+      border: none;
+      width: 100%;
+      min-height: 44px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      transition: background 0.15s;
+      border-right: 3px solid transparent;
+    }
+    .nav-item:hover { background: var(--muted); }
+    .nav-item.active {
+      background: var(--sidebar-accent);
+      color: var(--accent-foreground);
+      font-weight: 700;
+      border-right: 3px solid var(--primary);
+    }
+
+    .nav-item-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    /* ============ BOTTOM NAVIGATION ============ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      border-top: 1px solid var(--border);
+      background: rgba(255, 253, 248, 0.95);
+      backdrop-filter: blur(8px);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .dark .bottom-nav { background: rgba(54, 46, 38, 0.95); }
+
+    .bottom-nav-list {
+      display: flex;
+      justify-content: space-around;
+      list-style: none;
+    }
+
+    .bottom-nav-item {
+      flex: 1;
+    }
+
+    .bottom-nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.125rem;
+      padding: 0.5rem 0.25rem;
+      width: 100%;
+      min-height: 44px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--muted-foreground);
+      font-family: inherit;
+      font-size: 0.625rem;
+      line-height: 1.4;
+    }
+    .bottom-nav-btn.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .bottom-nav-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    /* ============ INFO BANNER ============ */
+    .info-banner {
+      background: linear-gradient(135deg, rgba(180, 89, 59, 0.08), rgba(201, 165, 116, 0.08));
+      border: 1px solid rgba(180, 89, 59, 0.2);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .info-banner-icon {
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+
+    .info-banner-content { flex: 1; }
+    .info-banner-title { font-weight: 600; margin-bottom: 0.25rem; }
+    .info-banner-text { color: var(--muted-foreground); line-height: 1.5; }
+
+    .info-banner a {
+      color: var(--primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    /* ============ BUTTONS ============ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      min-height: 44px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--foreground);
+    }
+    .btn-outline:hover { background: var(--muted); opacity: 1; }
+
+    .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    /* SVG icons */
+    .icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .icon-sm { width: 1rem; height: 1rem; }
+    .icon-lg { width: 1.5rem; height: 1.5rem; }
+
+    /* Hide Next.js preview link on real Next.js served pages */
+    .next-link-hint {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ============ HEADER ============ -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="header-left">
+          <button class="menu-btn" id="menuBtn" aria-label="مینو کھولیں">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <div class="brand">
+            <div class="brand-icon">
+              <svg class="icon" viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+            </div>
+            <div class="brand-text">
+              <div class="brand-title">المکہ فیکٹری</div>
+              <div class="brand-subtitle">ماربل پروسیسنگ سسٹم</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <span class="header-active">ڈیش بورڈ</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+      <!-- Preview hint banner -->
+      <div class="info-banner">
+        <div class="info-banner-icon">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+        <div class="info-banner-content">
+          <div class="info-banner-title">ساکن پیش منظر (Static Preview)</div>
+          <div class="info-banner-text">
+            یہ ایک static preview ہے — مکمل interactive ایپ کے لیے Next.js ڈیو سرور پر جائیں:
+            <a href="/" id="liveLink">لائیو ایپ کھولیں ←</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Heading -->
+      <h1 class="page-heading">ڈیش بورڈ</h1>
+      <p class="page-subtitle">آج کا خلاصہ — ہفتہ، ۱۱ جولائی ۲۰۲۶</p>
+
+      <!-- Stat cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">آج کی کٹنگ</span>
+            <div class="stat-icon primary">
+              <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-body">
+            <span class="stat-value numeric">1</span>
+            <span class="stat-unit">ریکارڈ</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">آج کا وزن</span>
+            <div class="stat-icon primary">
+              <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-body">
+            <span class="stat-value numeric">0.09</span>
+            <span class="stat-unit">ٹن</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">فعال عملہ</span>
+            <div class="stat-icon neutral">
+              <svg class="icon-sm" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-body">
+            <span class="stat-value numeric">0</span>
+            <span class="stat-unit">/ 0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">آج کا کھانے کا خرچہ</span>
+            <div class="stat-icon neutral">
+              <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 11h18M3 15h18M3 7h18M3 19h18"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-body">
+            <span class="stat-value numeric">₨ 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert -->
+      <div class="alert">
+        <div class="alert-icon">
+          <svg class="icon-sm" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4M12 17h.01"/></svg>
+        </div>
+        <p><strong>0</strong> بلیڈز کمزور حالت میں ہیں۔ دوبارہ آرڈر کرنے کی ضرورت ہو سکتی ہے۔</p>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="two-col">
+        <!-- Recent cutting -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">حالیہ کٹنگ ریکارڈ</h2>
+          </div>
+          <div class="card-body">
+            <div class="record-row">
+              <div class="record-info">
+                <div class="record-title">زیارت وائٹ</div>
+                <div class="record-meta">6×6 • 1cm</div>
+              </div>
+              <div class="record-value">
+                <div class="numeric">0.09 ٹن</div>
+                <div class="record-meta">11 جول</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent food -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">حالیہ کھانے کا خرچہ</h2>
+          </div>
+          <div class="card-body">
+            <p class="empty-text">ابھی کوئی کھانے کا خرچہ نہیں ہے۔</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="quick-stats">
+        <div class="quick-stat-card">
+          <div class="quick-stat-value numeric">5</div>
+          <div class="quick-stat-label">پتھر کی اقسام</div>
+        </div>
+        <div class="quick-stat-card">
+          <div class="quick-stat-value numeric">0</div>
+          <div class="quick-stat-label">فعال بلیڈز</div>
+        </div>
+        <div class="quick-stat-card">
+          <div class="quick-stat-value numeric">0</div>
+          <div class="quick-stat-label">کل عملہ</div>
+        </div>
+      </div>
+
+      <!-- CTA buttons -->
+      <div class="btn-row">
+        <a href="/" class="btn btn-primary" id="ctaLink">
+          لائیو ایپ کھولیں (Next.js)
+          <svg class="icon-sm rtl-flip" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <button class="btn btn-outline" id="closeHint">
+          پیش منظر بند کریں
+        </button>
+      </div>
+    </main>
+
+    <!-- ============ BOTTOM NAVIGATION ============ -->
+    <nav class="bottom-nav">
+      <ul class="bottom-nav-list">
+        <li class="bottom-nav-item">
+          <button class="bottom-nav-btn active">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            <span>ڈیش</span>
+          </button>
+        </li>
+        <li class="bottom-nav-item">
+          <button class="bottom-nav-btn">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>
+            <span>کٹنگ</span>
+          </button>
+        </li>
+        <li class="bottom-nav-item">
+          <button class="bottom-nav-btn">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span>عملہ</span>
+          </button>
+        </li>
+        <li class="bottom-nav-item">
+          <button class="bottom-nav-btn">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
+            <span>ذخیرہ</span>
+          </button>
+        </li>
+        <li class="bottom-nav-item">
+          <button class="bottom-nav-btn">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+            <span>رپورٹس</span>
+          </button>
+        </li>
+        <li class="bottom-nav-item">
+          <button class="bottom-nav-btn" id="moreBtn">
+            <svg class="bottom-nav-icon" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            <span>مزید</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- ============ DRAWER (off-canvas menu) ============ -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <h2 class="drawer-title">المکہ فیکٹری</h2>
+      <p class="drawer-subtitle">زیادہ خان اور امتیاز خان</p>
+    </div>
+    <nav class="drawer-nav">
+      <button class="nav-item active">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        <span>ڈیش بورڈ</span>
+      </button>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+        <span>پتھر کی اقسام</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="M21.3 8.7 8.7 21.3a2.4 2.4 0 0 1-3.4 0L2.7 18.7a2.4 2.4 0 0 1 0-3.4L15.3 2.7a2.4 2.4 0 0 1 3.4 0l2.6 2.6a2.4 2.4 0 0 1 0 3.4ZM7.5 10.5 2 16M21 8l-4-4"/></svg>
+        <span>سائز اور موٹائی</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>
+        <span>کٹنگ ریکارڈ</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2zM6 9l6-6 6 6M12 3v12"/></svg>
+        <span>مزدور کی اقسام</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <span>عملہ اور عہدے</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>بلیڈ کی اقسام اور استعمال</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="M3 11h18M3 15h18M3 7h18M3 19h18"/></svg>
+        <span>کھانے کا خرچہ</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+        <span>ذخیرہ / انوینٹری</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+        <span>رپورٹس</span>
+      </a>
+      <a href="/" class="nav-item">
+        <svg class="nav-item-icon" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>ترتیبات</span>
+      </a>
+    </nav>
+  </aside>
+
+  <script>
+    // Drawer toggle
+    var drawer = document.getElementById('drawer');
+    var overlay = document.getElementById('drawerOverlay');
+    var menuBtn = document.getElementById('menuBtn');
+    var moreBtn = document.getElementById('moreBtn');
+
+    function openDrawer() {
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+    }
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+
+    menuBtn.addEventListener('click', openDrawer);
+    moreBtn.addEventListener('click', openDrawer);
+    overlay.addEventListener('click', closeDrawer);
+
+    // Close hint banner
+    document.getElementById('closeHint').addEventListener('click', function() {
+      var banner = document.querySelector('.info-banner');
+      banner.style.display = 'none';
+    });
+
+    // Nav-item active state on click
+    document.querySelectorAll('.nav-item').forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        // If it's an <a href="/"> let it navigate to live app
+        // Otherwise just toggle active state
+        document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+        this.classList.add('active');
+        closeDrawer();
+      });
+    });
+
+    // Bottom nav active state
+    document.querySelectorAll('.bottom-nav-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (this.id === 'moreBtn') return; // moreBtn opens drawer
+        document.querySelectorAll('.bottom-nav-btn').forEach(function(b) { b.classList.remove('active'); });
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

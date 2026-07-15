@@ -1,0 +1,291 @@
+// المکہ فیکٹری (Al-Makkah Factory) - Marble Processing Factory
+// Phase 1: Data-tracking and calculation framework
+// Schema designed for easy future migration to Postgres/Supabase with RLS
+//
+// NOTE: The actual Supabase database uses snake_case table & column names
+// with UUID primary keys (gen_random_uuid()). The @map / @@map directives
+// below align this Prisma schema with the live database so that prisma
+// generate produces a client that queries the correct tables & columns.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============ AUTH / USERS ============
+// Mirrors the `profiles` table in Supabase. Used as the FK target for
+// `created_by` columns on transactional tables.
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+  role      String   @default("labour") // admin | manager | supervisor | labour | accountant
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cuttingRecords  CuttingRecord[]
+  foodExpenses    FoodExpense[]
+  inventoryItems  InventoryItem[]
+
+  @@map("profiles")
+}
+
+// Legacy User model kept for backward compatibility with seed scripts.
+// Not mapped to any live table — do not query at runtime.
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  passwordHash String
+  role        String   @default("admin") // admin | manager | supervisor | labour | accountant
+  permissions String?  // JSON-encoded permissions map (future use)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ============ REFERENCE DATA (lookup tables) ============
+// All "types" are manually manageable via in-app CRUD (Urdu UI)
+
+model MarbleType {
+  id         String   @id @default(uuid()) @db.Uuid
+  nameUrdu   String   @map("name_urdu") // e.g. زیارت وائٹ، بادل گرے
+  originNote String?  @map("origin_note") // quarry / origin note
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  cuttingRecords  CuttingRecord[]
+  inventoryItems  InventoryItem[]
+
+  @@map("marble_types")
+}
+
+model MarbleSize {
+  id         String   @id @default(uuid()) @db.Uuid
+  lengthFt   Float    @map("length_ft") // length in feet
+  widthFt    Float    @map("width_ft") // width in feet
+  label      String   // e.g. "12×24"
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  cuttingRecords CuttingRecord[]
+  inventoryItems InventoryItem[]
+
+  @@map("marble_sizes")
+}
+
+model MarbleThickness {
+  id           String   @id @default(uuid()) @db.Uuid
+  thicknessCm  Float    @map("thickness_cm") // thickness in cm
+  label        String   // e.g. "2cm"
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  cuttingRecords CuttingRecord[]
+  inventoryItems InventoryItem[]
+
+  @@map("marble_thicknesses")
+}
+
+model LabourCategory {
+  id         String   @id @default(uuid()) @db.Uuid
+  nameUrdu   String   @map("name_urdu") // کاٹنے والا، لوڈر، مزدور، ڈرائیور
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("labour_categories")
+}
+
+model Designation {
+  id         String   @id @default(uuid()) @db.Uuid
+  nameUrdu   String   @map("name_urdu") // منیجر، سپروائزر، مزدور، اکاؤنٹنٹ
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  staff Staff[]
+
+  @@map("designations")
+}
+
+model BladeType {
+  id         String   @id @default(uuid()) @db.Uuid
+  nameUrdu   String   @map("name_urdu")
+  brand      String?
+  sizeMm     Float?   @map("size_mm")
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  blades Blade[]
+
+  @@map("blade_types")
+}
+
+model FoodCategory {
+  id         String   @id @default(uuid()) @db.Uuid
+  nameUrdu   String   @map("name_urdu") // ناشتہ، دوپہر کا کھانا، چائے، سبزیاں، تیل/گھی
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  expenses FoodExpense[]
+
+  @@map("food_categories")
+}
+
+// ============ TRANSACTIONAL DATA ============
+
+model Staff {
+  id            String   @id @default(uuid()) @db.Uuid
+  nameUrdu      String   @map("name_urdu")
+  designationId String   @map("designation_id")
+  designation   Designation @relation(fields: [designationId], references: [id])
+  phone         String?
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  attendance StaffAttendance[]
+
+  @@map("staff")
+}
+
+model StaffAttendance {
+  id        String   @id @default(uuid()) @db.Uuid
+  staffId   String   @map("staff_id")
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  status    String   // present | absent | half_day | leave
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([staffId, date], map: "staff_attendance_staff_id_date_key")
+  @@map("staff_attendance")
+}
+
+model Blade {
+  id           String   @id @default(uuid()) @db.Uuid
+  bladeTypeId  String   @map("blade_type_id")
+  bladeType    BladeType @relation(fields: [bladeTypeId], references: [id])
+  serialNumber String?  @map("serial_number")
+  purchaseDate DateTime? @map("purchase_date") @db.Date
+  condition    String   @default("new") // new | good | worn | broken
+  isActive     Boolean  @default(true) @map("is_active")
+  reorderPoint Int      @default(3) @map("reorder_point")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  usage           BladeUsage[]
+  cuttingRecords  CuttingRecord[]
+
+  @@map("blades")
+}
+
+model BladeUsage {
+  id              String   @id @default(uuid()) @db.Uuid
+  bladeId         String   @map("blade_id")
+  blade           Blade    @relation(fields: [bladeId], references: [id], onDelete: Cascade)
+  cuttingRecordId String?  @map("cutting_record_id")
+  cuttingRecord   CuttingRecord? @relation(fields: [cuttingRecordId], references: [id])
+  usedAt          DateTime @default(now()) @map("used_at")
+  wearNotes       String?  @map("wear_notes")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("blade_usage")
+}
+
+model CuttingRecord {
+  id               String   @id @default(uuid()) @db.Uuid
+  date             DateTime @db.Date
+  marbleTypeId     String   @map("marble_type_id")
+  marbleType       MarbleType @relation(fields: [marbleTypeId], references: [id])
+  sizeId           String   @map("size_id")
+  size             MarbleSize @relation(fields: [sizeId], references: [id])
+  thicknessId      String   @map("thickness_id")
+  thickness        MarbleThickness @relation(fields: [thicknessId], references: [id])
+  lengthUnit       String   @default("ft") @map("length_unit") // ft | m | in
+  calculatedWeight Float?   @map("calculated_weight") // tons (auto-calculated from density)
+  actualWeight     Float?   @map("actual_weight") // tons (user-confirmed or overridden)
+  bladeId          String?  @map("blade_id")
+  blade            Blade?   @relation(fields: [bladeId], references: [id])
+  labourCategoryIds String[] @default([]) @map("labour_category_ids") // UUID array
+  staffIds         String[] @default([]) @map("staff_ids") // UUID array
+  notes            String?
+  createdBy        String?  @map("created_by") @db.Uuid
+  creator          Profile? @relation(fields: [createdBy], references: [id])
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  bladeUsage BladeUsage[]
+  inventoryItems InventoryItem[]
+
+  @@map("cutting_records")
+}
+
+model FoodExpense {
+  id          String   @id @default(uuid()) @db.Uuid
+  date        DateTime @db.Date
+  categoryId  String   @map("category_id")
+  category    FoodCategory @relation(fields: [categoryId], references: [id])
+  itemName    String   @map("item_name")
+  quantity    Float
+  unit        String   // kg | litre | piece | etc
+  cost        Float
+  notes       String?
+  createdBy   String?  @map("created_by") @db.Uuid
+  creator     Profile? @relation(fields: [createdBy], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("food_expenses")
+}
+
+model InventoryItem {
+  id              String   @id @default(uuid()) @db.Uuid
+  date            DateTime @db.Date
+  type            String   // raw_rock_in | slab_out | adjustment
+  marbleTypeId    String?  @map("marble_type_id")
+  marbleType      MarbleType? @relation(fields: [marbleTypeId], references: [id])
+  sizeId          String?  @map("size_id")
+  size            MarbleSize? @relation(fields: [sizeId], references: [id])
+  thicknessId     String?  @map("thickness_id")
+  thickness       MarbleThickness? @relation(fields: [thicknessId], references: [id])
+  quantity        Float
+  weightTons      Float?   @map("weight_tons")
+  notes           String?
+  cuttingRecordId String?  @map("cutting_record_id")
+  cuttingRecord   CuttingRecord? @relation(fields: [cuttingRecordId], references: [id])
+  createdBy       String?  @map("created_by") @db.Uuid
+  creator         Profile? @relation(fields: [createdBy], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("inventory_items")
+}
+
+// ============ SETTINGS ============
+model Setting {
+  id    String @id // text PK, e.g. "factory_name"
+  value String
+
+  @@map("settings")
+}

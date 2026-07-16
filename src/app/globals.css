@@ -334,3 +334,49 @@ a:focus-visible,
   background-color: oklch(from var(--primary) l c h / 0.25);
   color: var(--foreground);
 }
+
+/* =========================================================================
+   URDU-RTL FIX: numbers, dates, and mixed-content fields
+   -------------------------------------------------------------------------
+   The whole app is `dir="rtl"` (correct for Urdu prose), but numbers,
+   dates, phone numbers, and Latin-script fields must still read
+   left-to-right — that's how Urdu-medium documents (and every Urdu
+   newspaper) present digits and numerals inside RTL paragraphs.
+   Without this, digit order flips (e.g. a serial number or weight value
+   renders back-to-front) and numeric inputs feel broken to type into.
+   ========================================================================= */
+
+/* Numeric / date / latin-content form fields: force LTR digit order and
+   left text alignment, while the field itself still sits correctly
+   inside the RTL layout (label stays on the right via dir="rtl" parent). */
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="email"],
+input[type="url"],
+input[dir="ltr"],
+.ltr-numerals {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
+/* Table cells / badges holding pure numeric or date values (weights,
+   quantities, serial numbers, prices, dates) should isolate their
+   bidi context so digits don't get reordered by surrounding Urdu text. */
+.num,
+.numeric-cell,
+td.numeric,
+[data-numeric="true"] {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: right; /* right-align so it still lines up naturally in an RTL table */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Select dropdown triggers that show a number/date value need the same
+   isolation so the chevron stays on the correct (left, in RTL) side while
+   the value itself doesn't get its digit order scrambled. */
+[data-slot="select-value"] {
+  unicode-bidi: plaintext;
+}

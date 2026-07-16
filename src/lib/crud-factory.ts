@@ -14,9 +14,18 @@
  * did `new PrismaClient()` on every import, which (a) leaked connections
  * and (b) bypassed the env-driven configuration in lib/db.ts, causing
  * "Failed to fetch" / 500 errors on Vercel serverless functions.
+ *
+ * FIX (this file): `where` was typed as `Prisma.Sql | Record<string, unknown>`
+ * and then indexed with `where[searchField] = ...`. `Prisma.Sql` has no index
+ * signature, so this is a TypeScript type error under `strict` mode — it was
+ * breaking the production build (or being silently mistyped depending on
+ * tsconfig settings), which is why saving records on every reference-data
+ * tab (marble types, sizes, thicknesses, blade types, designations, food
+ * categories, labour categories, etc.) was unreliable. The unused `Prisma`
+ * import is removed and `where` is now plainly typed as
+ * `Record<string, unknown>`, which is all this generic filter ever needed.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
 type Delegate = {
@@ -51,7 +60,7 @@ export function createCrudHandler(config: ResourceConfig) {
     try {
       const url = new URL(req.url);
       const search = url.searchParams.get("search")?.trim();
-      const where: Prisma.Sql | Record<string, unknown> = {};
+      const where: Record<string, unknown> = {};
       if (search) {
         where[searchField] = { contains: search };
       }
